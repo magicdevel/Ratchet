@@ -51,15 +51,16 @@ class WsServer implements HttpServerInterface {
     private $isSpGenerated = false;
 
     /**
-     * @param \Ratchet\MessageComponentInterface $component Your application to run with WebSockets
      * If you want to enable sub-protocols have your component implement WsServerInterface as well
+     * @param \Ratchet\MessageComponentInterface $component Your application to run with WebSockets
+     * @param Version\RFC6455\PingListener $pingListener
      */
-    public function __construct(MessageComponentInterface $component) {
+    public function __construct(MessageComponentInterface $component, Version\RFC6455\PingListener $pingListener = null) {
         $this->versioner = new VersionManager;
         $this->validator = new ToggleableValidator;
 
         $this->versioner
-            ->enableVersion(new Version\RFC6455($this->validator))
+            ->enableVersion(new Version\RFC6455($this->validator, $pingListener))
             ->enableVersion(new Version\HyBi10($this->validator))
             ->enableVersion(new Version\Hixie76)
         ;

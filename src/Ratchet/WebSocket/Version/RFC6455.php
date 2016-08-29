@@ -10,6 +10,7 @@ use Ratchet\WebSocket\Encoding\ValidatorInterface;
 use Ratchet\WebSocket\Encoding\Validator;
 use Guzzle\Http\Message\RequestInterface;
 use Guzzle\Http\Message\Response;
+use Ratchet\WebSocket\Version\RFC6455\PingListener;
 
 /**
  * The latest version of the WebSocket protocol
@@ -35,7 +36,12 @@ class RFC6455 implements VersionInterface {
      */
     protected $validator;
 
-    public function __construct(ValidatorInterface $validator = null) {
+    /**
+     * @var PingListener
+     */
+    protected $pingListener;
+
+  public function __construct(ValidatorInterface $validator = null, PingListener $pingListener = null) {
         $this->_verifier = new HandshakeVerifier;
         $this->setCloseCodes();
 
@@ -44,7 +50,8 @@ class RFC6455 implements VersionInterface {
         }
 
         $this->validator = $validator;
-    }
+    $this->pingListener = $pingListener;
+  }
 
     /**
      * {@inheritdoc}
@@ -160,6 +167,8 @@ class RFC6455 implements VersionInterface {
                     break;
                     case $frame::OP_PING:
                         $from->send($this->newFrame($frame->getPayload(), true, $frame::OP_PONG));
+                        if($this->pingListener !== null)
+                          $this->pingListener->onPing($from);
                     break;
                     case $frame::OP_PONG:
                     break;
